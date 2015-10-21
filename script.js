@@ -69,8 +69,6 @@ $(document).ready(function() {
   
 });
   
-  
-  
 $('#btn-eval').click(function() {
   switch ($('#operation').find(":selected").attr('value')) {
     case 'value':
