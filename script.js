@@ -200,6 +200,7 @@ $('#btn-eval').click(function() {
     case 'clear':
       clear_graph();
       draw_axes();
+      $('#operation').val('graph');
       break;
   }
 });
