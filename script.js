@@ -5,6 +5,7 @@ var graph, pen;
 var domain = [-15, 15];
 var range = [-10, 10];
 var increment = 0.05;
+var line_mode = true;
 
 $('#expression').val(EXPR);
 
@@ -37,14 +38,51 @@ function draw_axes() {
   pen.stroke();
 }
 
+function bad_expression(expr) {
+  try {
+    evaluate_expression(expr, 0);
+    return false;
+  }
+  catch (err) {
+    return true;
+  }
+}
+
 function draw_function(expr) {
+  if (bad_expression(expr)) {
+    alert("Bad Expression!");
+    return;
+  }
+  var x, y;
+  var undef = false;
+  var oob = false; // out of bounds
   pen.strokeStyle = "black";
   pen.beginPath();
   pen.lineWidth = 1;
-  pen.moveTo(X(domain[0]), Y(evaluate_expression(expr, domain[0])));
-  for (var x = domain[0] + increment; x <= domain[1]; x += increment) {
-    pen.lineTo(X(x), Y(evaluate_expression(expr, x)));
+  
+  if (line_mode) {
+    y = evaluate_expression(expr, domain[0]);
+    if (!y.re)
+      pen.moveTo(X(domain[0]), Y(y));
+    else undef = true;
+    for (x = domain[0] + increment; x <= domain[1]; x += increment) {
+      y = evaluate_expression(expr, x);
+      if (Y(y) < -2*docheight || Y(y) > 2*docheight) {
+        undef = true;
+        continue;
+      }
+      if (!y.re && undef) {
+        undef = false;
+        pen.fillRect(X(x)-1, Y(y)-1, 3, 3);
+        pen.moveTo(X(x), Y(y));
+      }
+      else if (!y.re)
+        pen.lineTo(X(x), Y(y));
+      else undef = true;
+    }
   }
+  else for (x = domain[0]; x <= domain[1]; x += increment)
+    pen.fillRect(X(x), Y(evaluate_expression(expr, x)), 1, 1);
   pen.stroke();
 }
 
@@ -69,10 +107,18 @@ $(document).ready(function() {
   
 });
   
+$(document).keydown(function(e) {
+  switch (e.which) {
+    case 13: // enter
+      $('#btn-eval').click();
+      break;
+  }
+});
+  
 $('#btn-eval').click(function() {
   switch ($('#operation').find(":selected").attr('value')) {
     case 'value':
-      prompt("Evaluation:", evaluate_expression($('#expression').val(), prompt("Enter a value to evaluate: ")));
+      prompt("Evaluation:", evaluate_expression($('#expression').val(), prompt("Enter a value to evaluate: ", '0')));
       break;
     case 'graph':
       draw_function($('#expression').val());
@@ -80,6 +126,15 @@ $('#btn-eval').click(function() {
     case 'clear':
       clear_graph();
       draw_axes();
+      break;
+  }
+});
+
+$('#btn-settings').click(function() {
+  var setting = prompt("Enter a setting: ", 'increment');
+  switch(setting) {
+    case 'increment':
+      increment = parseFloat(prompt("Enter an Increment: ", '0.05'));
       break;
   }
 });
