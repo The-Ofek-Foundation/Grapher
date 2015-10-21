@@ -22,6 +22,13 @@
 #header select {
   font-size: 25px;
 }
+#header #btn-settings {
+  background-image: url("http://iconshow.me/media/images/Mixed/Free-Flat-UI-Icons/png/256/settings-24-256.png");
+  width: 40px;
+  height: 40px;
+  background-size: 40px 40px;
+  border-width: 0px;
+}
 #graph {
   position: absolute;
   top: 0px;
