@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
+<meta name="description" content="Math Fun">
 <script src="https://code.jquery.com/jquery-2.1.4.js"></script>
-<meta name="Math Fun" content="Math Fun">
   <meta charset="utf-8">
-  <title>Ofek's Math</title>
+  <title>Ofek's Grapher</title>
   <script src="http://cdnjs.cloudflare.com/ajax/libs/mathjs/2.4.0/math.min.js"></script>
   <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
+  <div id="coords" style="position: absolute; z-index: 1;"></div>
   <div id="header">
     Enter A Function: 
     <input id="expression">
@@ -16,6 +17,7 @@
       <option value="value">Value</option>
       <option value="graph" selected>Graph</option>
       <option value="clear">Clear</option>
+      <option value="trace">Trace</option>
     </select>
     <button id="btn-eval">Evaluate</button>
     <button id="btn-settings">_</button>
