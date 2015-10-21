@@ -31,7 +31,6 @@ function save_graph() {
 }
 
 function evaluate_expression(expr, location) {
-  console.log(location);
   return math.round(math.compile(expr).eval({x: location}), precision);
 }
 
