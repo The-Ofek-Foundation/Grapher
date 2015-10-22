@@ -25,7 +25,7 @@ function update_xym(x, y, m) { // x, y, slope
 
 update_dri();
 
-function restore_graph(dom) {
+function restore_graph() {
   var data = pen.getImageData(0, 0, graph.width, graph.height);
   var pixels = data.data;
   for (var i = 0; i < pixels.length; i++)
@@ -201,6 +201,10 @@ $(document).keydown(function(e) {
   if ($('#operation').find(":selected").attr('value') == 'trace') {
     trace(rX(e.pageX));
   }
+});
+
+$('#operation').change(function() {
+  restore_graph();
 });
   
 $('#btn-eval').click(function() {
