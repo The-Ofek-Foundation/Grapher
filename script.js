@@ -192,7 +192,10 @@ $(document).keydown(function(e) {
 $('#btn-eval').click(function() {
   switch ($('#operation').find(":selected").attr('value')) {
     case 'value':
-      prompt("Evaluation:", evaluate_expression($('#expression').val(), prompt("Enter a value to evaluate: ", '0')));
+      prompt("Evaluation:", evaluate_expression($('#expression').val(), parseInt(prompt("Enter a value to evaluate: ", '0'), 10)));
+      break;
+    case 'derivative':
+      prompt("Evaluation:", evaluate_derivative($('#expression').val(), parseInt(prompt("Enter a value to evaluate: ", '0'), 10)));
       break;
     case 'graph':
       draw_function($('#expression').val());
