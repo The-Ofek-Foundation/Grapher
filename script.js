@@ -218,6 +218,9 @@ $('#btn-eval').click(function() {
     case 'graph':
       draw_function($('#expression').val());
       break;
+    case 'regraph':
+      draw_graph();
+      break;
     case 'clear':
       clear_graph();
       draw_axes();
@@ -250,19 +253,24 @@ $('#btn-settings').click(function() {
 
 $(document).ready(function(){
     $(document).bind('mousewheel', function(e){
-        if(e.originalEvent.wheelDelta /120 > 0) {
-          domain = [domain[0] / 2, domain[1] / 2];
-          range = [range[0] / 2, range[1] / 2];
-          increment /= 2;
-          update_dri();
-          draw_graph();
-        }
-        else{
-          domain = [domain[0] * 2, domain[1] * 2];
-          range = [range[0] * 2, range[1] * 2];
-          increment *= 2;
-          update_dri();
-          draw_graph();
-        }
+      var delta;
+      if(e.originalEvent.wheelDelta /120 > 0) {
+        delta = domain[1] - domain[0];
+        domain = [domain[0] + delta / 4, domain[1] - delta / 4];
+        delta = range[1] - range[0];
+        range = [range[0] + delta / 4, range[1] - delta / 4];
+        increment /= 2;
+        update_dri();
+        draw_graph();
+      }
+      else{
+        delta = domain[1] - domain[0];
+        domain = [domain[0] - delta / 2, domain[1]  + delta / 2];
+        delta = range[1] - range[0];
+        range = [range[0] - delta / 2, range[1] + delta / 2];
+        increment *= 2;
+        update_dri();
+        draw_graph();
+      }
     });
 });
