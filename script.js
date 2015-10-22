@@ -10,6 +10,7 @@ var previous_trace = false;
 var saved_graph = false;
 var prev_domain;
 var data;
+var curr_x, curr_tangent;
 
 $('#expression').val(EXPR);
 
@@ -50,6 +51,11 @@ function evaluate_derivative(expr, location) {
   return math.round((evaluate_expression(expr, location + 0.0001) - evaluate_expression(expr, location - 0.0001)) / 0.0002, precision);
 }
 
+function evaluate_zero(expr, location) {
+  var slope = evaluate_derivative(expr, location);
+  return evaluate_expression("(" + slope + "*" + location + "-" + evaluate_expression(expr, location) + ")/" + slope, location);
+}
+
 function get_tangent_expression(expr, location) {
   return evaluate_derivative(expr, location) + '*(x-' + location + ')+' + evaluate_expression(expr, location);
 }
@@ -87,13 +93,13 @@ function draw_trace(x) {
   pen.fillStyle = "black";
   pen.strokeStyle = "black";
   pen.fillRect(X(x)-2, Y(y)-2, 5, 5);
-  var tangent = get_tangent_expression(expr, x);
-  var slope = evaluate_derivative(tangent, x);
+  curr_tangent = get_tangent_expression(expr, x);
+  var slope = evaluate_derivative(curr_tangent, x);
 //     var inc = Math.sqrt(10/(Math.pow(evaluate_derivative(tangent, x), 2) + 1));
 //   var inc = evaluate_expression("sqrt(10/((" + slope + ")^2+1))", 0);
   pen.beginPath();
-  pen.moveTo(X(domain[0]), Y(evaluate_expression(tangent, domain[0])));
-  pen.lineTo(X(domain[1]), Y(evaluate_expression(tangent, domain[1])));
+  pen.moveTo(X(domain[0]), Y(evaluate_expression(curr_tangent, domain[0])));
+  pen.lineTo(X(domain[1]), Y(evaluate_expression(curr_tangent, domain[1])));
   pen.stroke();
   update_xym(x, y, slope);
 }
@@ -101,7 +107,11 @@ function draw_trace(x) {
 function trace(x) {
   restore_graph();
   draw_trace(x);
-  
+}
+
+function run_newtons() {
+  curr_x = evaluate_zero($('#expression').val(), curr_x);
+  draw_trace(curr_x);
 }
 
 function draw_axes() {
@@ -196,11 +206,15 @@ $(document).keydown(function(e) {
     case 13: // enter
       $('#btn-eval').click();
       break;
+    case 78: // n
+      if ($('#operation').find(":selected").attr('value') == 'trace')
+        run_newtons();
+      break;
   }
 }).mousemove(function(e) {
-  if ($('#operation').find(":selected").attr('value') == 'trace') {
-    trace(rX(e.pageX));
-  }
+  curr_x = rX(e.pageX);
+  if ($('#operation').find(":selected").attr('value') == 'trace')
+    trace(curr_x);
 });
 
 $('#operation').change(function() {
