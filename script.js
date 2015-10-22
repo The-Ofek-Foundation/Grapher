@@ -13,6 +13,18 @@ var data;
 
 $('#expression').val(EXPR);
 
+function update_dri() { // domain, range, increment
+  var str = "Domain: " + domain + " ... Range: " + range + " ... Increment: " + increment;
+  $('#upper-footer').text(str);
+}
+
+function update_xym(x, y, m) { // x, y, slope
+  var str = "X: " + x + " ... Y: " + y + " ... Slope: " + m;
+  $('#upper-upper-footer').text(str);
+}
+
+update_dri();
+
 function restore_graph(dom) {
   var data = pen.getImageData(0, 0, graph.width, graph.height);
   var pixels = data.data;
@@ -76,14 +88,14 @@ function draw_trace(x) {
   pen.strokeStyle = "black";
   pen.fillRect(X(x)-2, Y(y)-2, 5, 5);
   var tangent = get_tangent_expression(expr, x);
-//   var slope = evaluate_derivative(tangent, x);
+  var slope = evaluate_derivative(tangent, x);
 //     var inc = Math.sqrt(10/(Math.pow(evaluate_derivative(tangent, x), 2) + 1));
 //   var inc = evaluate_expression("sqrt(10/((" + slope + ")^2+1))", 0);
   pen.beginPath();
   pen.moveTo(X(domain[0]), Y(evaluate_expression(tangent, domain[0])));
   pen.lineTo(X(domain[1]), Y(evaluate_expression(tangent, domain[1])));
   pen.stroke();
-  $('#coords').text(x + ", " + y + "  y=" + tangent);
+  update_xym(x, y, slope);
 }
 
 function trace(x) {
@@ -157,6 +169,8 @@ function draw_function(expr, no_save, dom) {
 }
 
 function draw_graph() {
+  clear_graph();
+  
   draw_axes();
   
   draw_function($('#expression').val());
@@ -227,4 +241,24 @@ $('#btn-settings').click(function() {
       range = eval(prompt("Enter a Range: ", "[-10, 10]"));
       break;
   }
+  update_dri();
+});
+
+$(document).ready(function(){
+    $(document).bind('mousewheel', function(e){
+        if(e.originalEvent.wheelDelta /120 > 0) {
+          domain = [domain[0] / 2, domain[1] / 2];
+          range = [range[0] / 2, range[1] / 2];
+          increment /= 2;
+          update_dri();
+          draw_graph();
+        }
+        else{
+          domain = [domain[0] * 2, domain[1] * 2];
+          range = [range[0] * 2, range[1] * 2];
+          increment *= 2;
+          update_dri();
+          draw_graph();
+        }
+    });
 });
