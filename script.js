@@ -211,6 +211,18 @@ $(document).keydown(function(e) {
         run_newtons();
       break;
   }
+  if (e.ctrlKey) {
+   switch (e.which) {
+     case 187: // =
+       e.preventDefault();
+       zoom_in();
+       break;
+     case 189: // -
+       e.preventDefault();
+       zoom_out();
+       break;
+   }
+ }
 }).mousemove(function(e) {
   curr_x = rX(e.pageX);
   if ($('#operation').find(":selected").attr('value') == 'trace')
@@ -265,26 +277,30 @@ $('#btn-settings').click(function() {
   update_dri();
 });
 
+function zoom_in() {
+  var delta = domain[1] - domain[0];
+  domain = [domain[0] + delta / 4, domain[1] - delta / 4];
+  delta = range[1] - range[0];
+  range = [range[0] + delta / 4, range[1] - delta / 4];
+  increment /= 2;
+  update_dri();
+  draw_graph();
+}
+
+function zoom_out() {
+  var delta = domain[1] - domain[0];
+  domain = [domain[0] - delta / 2, domain[1]  + delta / 2];
+  delta = range[1] - range[0];
+  range = [range[0] - delta / 2, range[1] + delta / 2];
+  increment *= 2;
+  update_dri();
+  draw_graph();
+}
+
 $(document).ready(function(){
-    $(document).bind('mousewheel', function(e){
-      var delta;
-      if(e.originalEvent.wheelDelta /120 > 0) {
-        delta = domain[1] - domain[0];
-        domain = [domain[0] + delta / 4, domain[1] - delta / 4];
-        delta = range[1] - range[0];
-        range = [range[0] + delta / 4, range[1] - delta / 4];
-        increment /= 2;
-        update_dri();
-        draw_graph();
-      }
-      else{
-        delta = domain[1] - domain[0];
-        domain = [domain[0] - delta / 2, domain[1]  + delta / 2];
-        delta = range[1] - range[0];
-        range = [range[0] - delta / 2, range[1] + delta / 2];
-        increment *= 2;
-        update_dri();
-        draw_graph();
-      }
+    $(document).bind('mousewheel', function(e) {
+      if(e.originalEvent.wheelDelta /120 > 0)
+        zoom_in();
+      else zoom_out();
     });
 });
