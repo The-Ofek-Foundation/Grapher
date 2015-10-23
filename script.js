@@ -12,6 +12,7 @@ var prev_domain;
 var data;
 var curr_x, curr_tangent;
 var animate = true;
+var functions_animating = 0;
 
 $('#expression').val(EXPR);
 
@@ -61,10 +62,16 @@ function get_tangent_expression(expr, location) {
   return evaluate_derivative(expr, location) + '*(x-' + location + ')+' + evaluate_expression(expr, location);
 }
 
-function clear_graph() {
+function clear_graph(callback) {
+  stop_timeout = true;
   pen.clearRect(0, 0, docwidth, docheight);
   pen.fillStyle = "white";
   pen.fillRect(0, 0, docwidth, docheight);
+  setTimeout(function() {
+    stop_timeout = false;
+    functions_animating = 0;
+    callback();
+  }, 20);
 }
 
 function X(x) { // convert x coord to somewhere on screen
@@ -194,6 +201,7 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
   if (x > dom[1]) {
     if (!no_save)
       save_graph();
+    functions_animating--;
     return;
   }
   
@@ -228,7 +236,6 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
 };
 
 function start_function_animation(expr, no_save, dom) {
-  stop_timeout = true;
   if (!dom)
     dom = domain;
   if (bad_expression(expr)) {
@@ -243,24 +250,22 @@ function start_function_animation(expr, no_save, dom) {
   
   var y = evaluate_expression(expr, dom[0]);
   
-  setTimeout(function() {
-    stop_timeout = false;
-    if (line_mode)
-      animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
-    else {
-      pen.fillRect(X(dom[0]), Y(y), 1, 1);
-      animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
-    }
-  }, 100);
+  functions_animating++;
+  if (line_mode)
+    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+  else {
+    pen.fillRect(X(dom[0]), Y(y), 1, 1);
+    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+  }
   
 }
 
 function draw_graph() {
-  clear_graph();
+  clear_graph(function() {
+    draw_function($('#expression').val());
+  });
   
-  draw_axes();
-  
-  draw_function($('#expression').val());
+  draw_axes();  
 }
 
 $(document).ready(function() {
@@ -302,12 +307,13 @@ $(document).keydown(function(e) {
  }
 }).mousemove(function(e) {
   curr_x = rX(e.pageX);
-  if ($('#operation').find(":selected").attr('value') == 'trace')
+  if ($('#operation').find(":selected").attr('value') == 'trace' && functions_animating <= 0)
     trace(curr_x);
 });
 
 $('#operation').change(function() {
-  restore_graph();
+  if (functions_animating <= 0)
+    restore_graph();
 });
   
 $('#btn-eval').click(function() {
