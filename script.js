@@ -4,7 +4,6 @@ var EXPR = 'x*sin(x)';
 var graph, pen;
 var domain = [-15, 15];
 var range = [-10, 10];
-var increment = 0.02;
 var line_mode = true;
 var previous_trace = false;
 var saved_graph = false;
@@ -13,6 +12,8 @@ var data;
 var curr_x, curr_tangent;
 var animate = true;
 var functions_animating = 0;
+var immediate = typeof(setImmediate) == 'undefined' ? false:true;
+var increment = immediate ? 0.002:0.02;
 
 $('#expression').val(EXPR);
 
@@ -190,8 +191,10 @@ function draw_function(expr, no_save, dom) {
     save_graph();
 }
 
-var requestAnimationFrame =
+var requestAnimationFrame = immediate ?
   function(callback) {
+    return setImmediate(callback);
+  }:function(callback) {
     return setTimeout(callback, 0);
   };
 
