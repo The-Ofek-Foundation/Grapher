@@ -183,15 +183,12 @@ function draw_function(expr, no_save, dom) {
     save_graph();
 }
 
-var requestAnimationFrame =  
-//         window.requestAnimationFrame ||
-//         window.webkitRequestAnimationFrame ||
-//         window.mozRequestAnimationFrame ||
-//         window.msRequestAnimationFrame ||
-//         window.oRequestAnimationFrame ||
-        function(callback) {
-          return setTimeout(callback, 0);
-        };
+var requestAnimationFrame =
+  function(callback) {
+    return setTimeout(callback, 0);
+  };
+
+var stop_timeout = false;
 
 var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) {
   if (x > dom[1]) {
@@ -202,7 +199,7 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
   
   var y = evaluate_expression(expr, x);
 
-  if (y.re) drawing = false;
+  if (y.re || stop_timeout) drawing = false;
   else if (line_mode || (delta && delta > 0.001 || delta < -0.001)) {
     if (Y(y) > docheight || Y(y) < 0) {
       if (drawing) {
@@ -224,12 +221,14 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
   else
     pen.fillRect(X(x), Y(y));
   
-  requestAnimationFrame(function() {
-    animate_function_drawing(expr, dom, x + increment, y, drawing, no_save);
-  });
+  if (!stop_timeout)
+    requestAnimationFrame(function() {
+      animate_function_drawing(expr, dom, x + increment, y, drawing, no_save);
+    });
 };
 
 function start_function_animation(expr, no_save, dom) {
+  stop_timeout = true;
   if (!dom)
     dom = domain;
   if (bad_expression(expr)) {
@@ -243,13 +242,17 @@ function start_function_animation(expr, no_save, dom) {
   pen.lineWidth = 1;
   
   var y = evaluate_expression(expr, dom[0]);
-
-  if (line_mode)
-    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
-  else {
-    pen.fillRect(X(dom[0]), Y(y));
-    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
-  }
+  
+  setTimeout(function() {
+    stop_timeout = false;
+    if (line_mode)
+      animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+    else {
+      pen.fillRect(X(dom[0]), Y(y));
+      animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+    }
+  }, 100);
+  
 }
 
 function draw_graph() {
