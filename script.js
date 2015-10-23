@@ -200,7 +200,7 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
   var y = evaluate_expression(expr, x);
 
   if (y.re || stop_timeout) drawing = false;
-  else if (line_mode || (delta && delta > 0.001 || delta < -0.001)) {
+  else if (line_mode) {
     if (Y(y) > docheight || Y(y) < 0) {
       if (drawing) {
         drawing = false;
@@ -248,7 +248,7 @@ function start_function_animation(expr, no_save, dom) {
     if (line_mode)
       animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
     else {
-      pen.fillRect(X(dom[0]), Y(y));
+      pen.fillRect(X(dom[0]), Y(y), 1, 1);
       animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
     }
   }, 100);
