@@ -219,7 +219,7 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
     }
   }
   else
-    pen.fillRect(X(x), Y(y));
+    pen.fillRect(X(x), Y(y), 1, 1);
   
   if (!stop_timeout)
     requestAnimationFrame(function() {
