@@ -11,6 +11,7 @@ var saved_graph = false;
 var prev_domain;
 var data;
 var curr_x, curr_tangent;
+var animate = true;
 
 $('#expression').val(EXPR);
 
@@ -138,6 +139,10 @@ function bad_expression(expr) {
 }
 
 function draw_function(expr, no_save, dom) {
+  if (animate) {
+    start_function_animation(expr, no_save, dom);
+    return;
+  }
   if (!dom)
     dom = domain;
   if (bad_expression(expr)) {
@@ -164,7 +169,7 @@ function draw_function(expr, no_save, dom) {
         }
         pen.beginPath();
         pen.moveTo(X(x), Y(y));
-      }        
+      }
       else {
         pen.lineTo(X(x), Y(y));
         drawing = true;
@@ -176,6 +181,75 @@ function draw_function(expr, no_save, dom) {
   pen.stroke();
   if (!no_save)
     save_graph();
+}
+
+var requestAnimationFrame =  
+//         window.requestAnimationFrame ||
+//         window.webkitRequestAnimationFrame ||
+//         window.mozRequestAnimationFrame ||
+//         window.msRequestAnimationFrame ||
+//         window.oRequestAnimationFrame ||
+        function(callback) {
+          return setTimeout(callback, 0);
+        };
+
+var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) {
+  if (x > dom[1]) {
+    if (!no_save)
+      save_graph();
+    return;
+  }
+  
+  var y = evaluate_expression(expr, x);
+
+  if (y.re) drawing = false;
+  else if (line_mode || (delta && delta > 0.001 || delta < -0.001)) {
+    if (Y(y) > docheight || Y(y) < 0) {
+      if (drawing) {
+        drawing = false;
+        pen.beginPath();
+        pen.moveTo(X(x - increment), Y(prev_y));
+        pen.lineTo(X(x), Y(y));
+        pen.stroke();
+      }
+    }
+    else if (!prev_y.re) {
+      pen.beginPath();
+      pen.moveTo(X(x - increment), Y(prev_y));
+      pen.lineTo(X(x), Y(y));
+      pen.stroke();
+      drawing = true;
+    }
+  }
+  else
+    pen.fillRect(X(x), Y(y));
+  
+  requestAnimationFrame(function() {
+    animate_function_drawing(expr, dom, x + increment, y, drawing, no_save);
+  });
+};
+
+function start_function_animation(expr, no_save, dom) {
+  if (!dom)
+    dom = domain;
+  if (bad_expression(expr)) {
+    alert("Bad Expression!");
+    return;
+  }
+  
+  pen.strokeStyle = "black";
+  pen.fillStyle = "black";
+  
+  pen.lineWidth = 1;
+  
+  var y = evaluate_expression(expr, dom[0]);
+
+  if (line_mode)
+    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+  else {
+    pen.fillRect(X(dom[0]), Y(y));
+    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+  }
 }
 
 function draw_graph() {
@@ -272,6 +346,12 @@ $('#btn-settings').click(function() {
       break;
     case 'range':
       range = eval(prompt("Enter a Range: ", "[-10, 10]"));
+      break;
+    case 'animate': case 'draw animation':
+      animate = true;
+      break;
+    case 'no animation': case 'stop animation': case 'stop animating':
+      animate = false;
       break;
   }
   update_dri();
