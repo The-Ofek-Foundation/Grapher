@@ -50,8 +50,20 @@ function evaluate_expression(expr, location) {
   return math.round(math.compile(expr).eval({x: location}), precision);
 }
 
+function evaluate_expression_exact(expr, location) {
+  return math.compile(expr).eval({x: location});
+}
+
 function evaluate_derivative(expr, location) {
-  return math.round((evaluate_expression(expr, location + 0.0001) - evaluate_expression(expr, location - 0.0001)) / 0.0002, precision);
+  return math.round((evaluate_expression_exact(expr, location + 0.0001) - evaluate_expression_exact(expr, location - 0.0001)) / 0.0002, precision);
+}
+
+function evaluate_integral(expr, start, end) {
+  return math.round((evaluate_expression_exact(expr, start) + evaluate_expression_exact(expr, end)) / 2 * (end-start), precision);
+}
+
+function evaluate_integral_point(expr, location) {
+  return math.round((evaluate_expression_exact(expr, 0) + evaluate_expression_exact(expr, location)) / 2 * (location-0), precision);
 }
 
 function evaluate_zero(expr, location) {
@@ -71,6 +83,7 @@ function clear_graph(callback) {
   setTimeout(function() {
     stop_timeout = false;
     functions_animating = 0;
+    save_graph();
     callback();
   }, 20);
 }
@@ -146,9 +159,9 @@ function bad_expression(expr) {
   }
 }
 
-function draw_function(expr, no_save, dom) {
+function draw_function(expr, no_save, dom, deriv) {
   if (animate) {
-    start_function_animation(expr, no_save, dom);
+    start_function_animation(expr, no_save, dom, deriv);
     return;
   }
   if (!dom)
@@ -159,16 +172,17 @@ function draw_function(expr, no_save, dom) {
   }
   var x, y;
   var drawing = false;
+  var evaluate = deriv ? evaluate_derivative:evaluate_expression;
   pen.strokeStyle = "black";
   pen.fillStyle = "black";
   pen.beginPath();
   pen.lineWidth = 1;
   
   if (line_mode) {
-    y = evaluate_expression(expr, dom[0]);
+    y = evaluate(expr, dom[0]);
     pen.moveTo(X(dom[0]), Y(y));
     for (x = dom[0] + increment; x <= dom[1]; x += increment) {
-      y = evaluate_expression(expr, x);
+      y = evaluate(expr, x);
       if (Y(y) > docheight || Y(y) < 0 || y.re) {
         if (drawing) {
           drawing = false;
@@ -185,7 +199,7 @@ function draw_function(expr, no_save, dom) {
     }
   }
   else for (x = dom[0]; x <= dom[1]; x += increment)
-    pen.fillRect(X(x), Y(evaluate_expression(expr, x)), 1, 1);
+    pen.fillRect(X(x), Y(evaluate(expr, x)), 1, 1);
   pen.stroke();
   if (!no_save)
     save_graph();
@@ -200,7 +214,7 @@ var requestAnimationFrame = immediate ?
 
 var stop_timeout = false;
 
-var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) {
+var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save, evaluate) {
   if (x > dom[1]) {
     if (!no_save)
       save_graph();
@@ -208,7 +222,7 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
     return;
   }
   
-  var y = evaluate_expression(expr, x);
+  var y = evaluate(expr, x);
 
   if (y.re || stop_timeout) drawing = false;
   else if (line_mode) {
@@ -234,11 +248,11 @@ var animate_function_drawing = function(expr, dom, x, prev_y, drawing, no_save) 
   
   if (!stop_timeout)
     requestAnimationFrame(function() {
-      animate_function_drawing(expr, dom, x + increment, y, drawing, no_save);
+      animate_function_drawing(expr, dom, x + increment, y, drawing, no_save, evaluate);
     });
 };
 
-function start_function_animation(expr, no_save, dom) {
+function start_function_animation(expr, no_save, dom, deriv) {
   if (!dom)
     dom = domain;
   if (bad_expression(expr)) {
@@ -250,22 +264,23 @@ function start_function_animation(expr, no_save, dom) {
   pen.fillStyle = "black";
   
   pen.lineWidth = 1;
+  var evaluate = deriv ? evaluate_derivative:evaluate_expression;
   
-  var y = evaluate_expression(expr, dom[0]);
+  var y = evaluate(expr, dom[0]);
   
   functions_animating++;
   if (line_mode)
-    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save, evaluate);
   else {
     pen.fillRect(X(dom[0]), Y(y), 1, 1);
-    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save);
+    animate_function_drawing(expr, dom, dom[0] + increment, y, false, no_save, evaluate);
   }
   
 }
 
-function draw_graph() {
+function draw_graph(derivative) {
   clear_graph(function() {
-    draw_function($('#expression').val());
+    draw_function($('#expression').val(), null, null, derivative);
   });
   
   draw_axes();  
@@ -332,6 +347,9 @@ $('#btn-eval').click(function() {
       break;
     case 'regraph':
       draw_graph();
+      break;
+    case 'draw-deriv':
+      draw_function($('#expression').val(), null, null, true);
       break;
     case 'clear':
       clear_graph();
