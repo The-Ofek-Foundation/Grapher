@@ -299,8 +299,8 @@ function pageReady() {
 	$("#upper-footer").css('bottom', $("#footer").outerHeight());
 	$("#upper-upper-footer").css('bottom', $("#footer").outerHeight() + $("#upper-footer").outerHeight());
 
-	docwidth = $("#content-wrapper").outerWidth(true);
-	docheight = $("#content-wrapper").outerHeight(true);
+	docwidth = getElemWidth(document.getElementById('content-wrapper'));
+	docheight = getElemHeight(document.getElementById('content-wrapper'));
 
 	graph.setAttribute('width', docwidth);
 	graph.setAttribute('height', docheight);
