@@ -292,15 +292,15 @@ function drawGraph(derivative) {
 }
 
 function pageReady() {
-	graph = document.getElementById("graph");
+	graph = getElemId("graph");
 	pen = graph.getContext("2d");
 
 	$("#header").css('top', $("#content-wrapper").position().top);
 	$("#upper-footer").css('bottom', $("#footer").outerHeight());
 	$("#upper-upper-footer").css('bottom', $("#footer").outerHeight() + $("#upper-footer").outerHeight());
 
-	docwidth = getElemWidth(document.getElementById('content-wrapper'));
-	docheight = getElemHeight(document.getElementById('content-wrapper'));
+	docwidth = getElemWidth(getElemId('content-wrapper'));
+	docheight = getElemHeight(getElemId('content-wrapper'));
 
 	graph.setAttribute('width', docwidth);
 	graph.setAttribute('height', docheight);

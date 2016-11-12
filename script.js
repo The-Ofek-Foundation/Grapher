@@ -288,7 +288,7 @@ function draw_graph(derivative) {
 
 $(document).ready(function() {
   
-  graph = document.getElementById("graph");
+  graph = getElemId("graph");
   pen = graph.getContext("2d");
   
   docwidth = $(document).outerWidth(true);
