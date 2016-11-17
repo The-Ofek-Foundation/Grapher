@@ -292,7 +292,7 @@ function drawGraph(derivative) {
 }
 
 function pageReady() {
-	graph = document.getElementById("graph");
+	graph = getElemId("graph");
 	pen = graph.getContext("2d");
 
 	$("#header").css('top', $("#content-wrapper").position().top);
@@ -301,7 +301,6 @@ function pageReady() {
 
 	docwidth = getElemWidth(contentWrapper);
 	docheight = getElemHeight(contentWrapper);
-
 	graph.setAttribute('width', docwidth);
 	graph.setAttribute('height', docheight);
 
