@@ -1,4 +1,4 @@
-var docwidth, docheight;
+var docWidth, docHeight;
 var precision = 10;
 var EXPR = 'x*sin(x)';
 var graph, pen;
@@ -16,16 +16,25 @@ var immediate = typeof(setImmediate) == 'undefined' ? false:true;
 var increment = immediate ? 0.002:0.02;
 var drawCoordinateAxes = true;
 
-$('#expression').val(EXPR);
+var expressionElem = getElemId('expression');
+var upperFooterElem = getElemId('upper-footer');
+var upperUpperFooterElem = getElemId('upper-upper-footer');
+var headerElem = getElemId('header');
+var footerElem = getElemId('footer');
+var operationElem = getElemId('operation');
+var btnEvalElem = getElemId('btn-eval');
+var btnSettingsElem = getElemId('btn-settings');
+
+expressionElem.value = EXPR;
 
 function updateDri() { // domain, range, increment
 	var str = "Domain: " + domain + " ... Range: " + range + " ... Increment: " + increment;
-	$('#upper-footer').text(str);
+	upperFooterElem.innerHTML = str;
 }
 
 function updateXym(x, y, m) { // x, y, slope
 	var str = "X: " + x + " ... Y: " + y + " ... Slope: " + m;
-	$('#upper-upper-footer').text(str);
+	upperUpperFooterElem.innerHTML = str;
 }
 
 updateDri();
@@ -86,9 +95,9 @@ function getTangentExpression(expr, location) {
 
 function clearGraph(callback) {
 	stopTimeout = true;
-	pen.clearRect(0, 0, docwidth, docheight);
+	pen.clearRect(0, 0, docWidth, docHeight);
 	pen.fillStyle = "white";
-	pen.fillRect(0, 0, docwidth, docheight);
+	pen.fillRect(0, 0, docWidth, docHeight);
 	setTimeout(function() {
 		stopTimeout = false;
 		functionsAnimating = 0;
@@ -99,22 +108,22 @@ function clearGraph(callback) {
 
 function X(x) { // convert x coord to somewhere on screen
 	x = x - domain[0];
-	return x * docwidth / (domain[1] - domain[0]);
+	return x * docWidth / (domain[1] - domain[0]);
 }
 
 function rX(x) { // convert somewhere on screen to x coord
-	x = x / docwidth * (domain[1] - domain[0]);
+	x = x / docWidth * (domain[1] - domain[0]);
 	return x + domain[0];
 }
 
 function Y(y) { // convert y coord to somewhere on screen
 	y = y - range[0];
-	return docheight - (y * docheight / (range[1] - range[0]));
+	return docHeight - (y * docHeight / (range[1] - range[0]));
 }
 
 function rY(y) {
-	y = docheight - y;
-	y = y / docheight * (range[1] - range[0]);
+	y = docHeight - y;
+	y = y / docHeight * (range[1] - range[0]);
 	return y + range[0];
 }
 
@@ -150,9 +159,9 @@ function drawAxes() {
 	pen.beginPath();
 	pen.lineWidth = 3;
 	pen.moveTo(X(0), 0);
-	pen.lineTo(X(0), docheight);
+	pen.lineTo(X(0), docHeight);
 	pen.moveTo(0, Y(0));
-	pen.lineTo(docwidth, Y(0));
+	pen.lineTo(docWidth, Y(0));
 	pen.stroke();
 }
 
@@ -192,7 +201,7 @@ function drawFunction(expr, noSave, dom, deriv) {
 		pen.moveTo(X(dom[0]), Y(y));
 		for (x = dom[0] + increment; x <= dom[1]; x += increment) {
 			y = evaluate(expr, x);
-			if (Y(y) > docheight || Y(y) < 0 || y.re) {
+			if (Y(y) > docHeight || Y(y) < 0 || y.re) {
 				if (drawing) {
 					drawing = false;
 					pen.lineTo(X(x), Y(y));
@@ -233,7 +242,7 @@ var animateFunctionDrawing = function(expr, dom, x, prevY, drawing, noSave, eval
 
 	if (y.re || stopTimeout) drawing = false;
 	else if (lineMode) {
-		if (Y(y) > docheight || Y(y) < 0) {
+		if (Y(y) > docHeight || Y(y) < 0) {
 			if (drawing) {
 				drawing = false;
 				pen.beginPath();
@@ -295,78 +304,105 @@ function pageReady() {
 	graph = getElemId("graph");
 	pen = graph.getContext("2d");
 
-	$("#header").css('top', $("#content-wrapper").position().top);
-	$("#upper-footer").css('bottom', $("#footer").outerHeight());
-	$("#upper-upper-footer").css('bottom', $("#footer").outerHeight() + $("#upper-footer").outerHeight());
+	$(document).bind('mousewheel', function(e) {
+		if(e.originalEvent.wheelDelta /120 > 0)
+			zoomIn();
+		else zoomOut();
+	});
 
-	docwidth = getElemWidth(contentWrapper);
-	docheight = getElemHeight(contentWrapper);
-	graph.setAttribute('width', docwidth);
-	graph.setAttribute('height', docheight);
+	resizeGraph();
 
 	setTimeout(drawGraph, 100);
-};
+}
 
-$(document).keydown(function(e) {
+function onResize() {
+	resizeGraph();
+	drawGraph();
+}
+
+function resizeGraph() {
+	docWidth = getElemWidth(contentWrapper);
+	docHeight = getElemHeight(contentWrapper);
+
+	setElemStyle(headerElem, 'top', contentWrapper.offsetTop);
+	setElemStyle(upperFooterElem, 'bottom', getElemHeight(footerElem) + 'px');
+	setElemStyle(upperUpperFooterElem, 'bottom', getElemHeight(footerElem) +
+		getElemHeight(upperFooterElem) + 'px');
+
+	graph.setAttribute('width', docWidth);
+	graph.setAttribute('height', docHeight);
+}
+document.addEventListener('keydown', function (e) {
 	switch (e.which) {
 		case 13: // enter
 			$('#btn-eval').click();
 			break;
 		case 78: // n
-			if ($('#operation').find(":selected").attr('value') == 'trace')
+			if (operationElem.value === 'trace')
 				runNewtons();
 			break;
 	}
 	if (e.ctrlKey) {
-	 switch (e.which) {
-		 case 187: // =
-			 e.preventDefault();
-			 zoomIn();
-			 break;
-		 case 189: // -
-			 e.preventDefault();
-			 zoomOut();
-			 break;
-	 }
- }
-}).mousemove(function(e) {
+		switch (e.which) {
+			case 187: // =
+				e.preventDefault();
+				zoomIn();
+				break;
+			case 189: // -
+				e.preventDefault();
+				zoomOut();
+				break;
+		}
+	}
+});
+
+document.addEventListener('mousemove', function (e) {
 	currX = rX(e.pageX);
-	if ($('#operation').find(":selected").attr('value') == 'trace' && functionsAnimating <= 0)
+	if (operationElem.value === 'trace' && functionsAnimating <= 0)
 		trace(currX);
 });
 
-$('#operation').change(function() {
+operationElem.addEventListener('change', function () {
 	if (functionsAnimating <= 0)
 		restoreGraph();
 });
 
-$('#btn-eval').click(function() {
-	switch ($('#operation').find(":selected").attr('value')) {
+btnEvalElem.addEventListener('click', btnEvalClick);
+
+function btnEvalClick() {
+	switch (operationElem.value) {
 		case 'value':
-			prompt("Evaluation:", evaluateExpression($('#expression').val(), parseInt(prompt("Enter a value to evaluate: ", '0'), 10)));
+			prompt("Evaluation:", evaluateExpression(getExpression(),
+				parseInt(prompt("Enter a value to evaluate: ", '0'), 10)));
 			break;
 		case 'derivative':
-			prompt("Evaluation:", evaluateDerivative($('#expression').val(), parseInt(prompt("Enter a value to evaluate: ", '0'), 10)));
+			prompt("Evaluation:", evaluateDerivative(getExpression(),
+				parseInt(prompt("Enter a value to evaluate: ", '0'), 10)));
 			break;
 		case 'graph':
-			drawFunction($('#expression').val());
+			drawFunction(getExpression());
 			break;
 		case 'regraph':
 			drawGraph();
 			break;
 		case 'draw-deriv':
-			drawFunction($('#expression').val(), null, null, true);
+			drawFunction(getExpression(), null, null, true);
 			break;
 		case 'clear':
-			clearGraph();
-			if (drawCoordinateAxes)
-			drawAxes();
-			$('#operation').val('graph');
+			clearGraph(function () {
+				if (drawCoordinateAxes)
+					drawAxes();
+				operationElem.value = 'graph';
+			});
 			break;
 	}
-});
+}
 
-$('#btn-settings').click(function() {
+function getExpression() {
+	return expressionElem.value;
+}
+
+btnSettingsElem.addEventListener('click', function () {
 	var setting = prompt("Enter a setting: ", 'increment');
 	switch(setting) {
 		case 'increment':
@@ -416,11 +452,3 @@ function zoomOut() {
 	updateDri();
 	drawGraph();
 }
-
-$(document).ready(function(){
-	$(document).bind('mousewheel', function(e) {
-		if(e.originalEvent.wheelDelta /120 > 0)
-			zoomIn();
-		else zoomOut();
-	});
-});
