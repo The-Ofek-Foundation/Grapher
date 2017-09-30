@@ -16,16 +16,16 @@ var immediate = typeof(setImmediate) == 'undefined' ? false:true;
 var increment = immediate ? 0.002:0.02;
 var drawCoordinateAxes = true;
 
-var expressionElem = getElemId('expression');
+var expressionElem = getElemName('expression');
 var upperFooterElem = getElemId('upper-footer');
 var upperUpperFooterElem = getElemId('upper-upper-footer');
 var headerElem = getElemId('header');
 var footerElem = getElemId('footer');
-var operationElem = getElemId('operation');
+var operationElem = getElemName('operation');
 var btnEvalElem = getElemId('btn-eval');
 var btnSettingsElem = getElemId('btn-settings');
 
-expressionElem.value = EXPR;
+setInputValue('expression', EXPR);
 
 function updateDri() { // domain, range, increment
 	var str = "Domain: " + domain + " ... Range: " + range + " ... Increment: " + increment;
@@ -128,7 +128,7 @@ function rY(y) {
 }
 
 function drawTrace(x) {
-	var expr = $('#expression').val();
+	var expr = getInputValue('expression');
 	var y = evaluateExpression(expr, x);
 	pen.fillStyle = "black";
 	pen.strokeStyle = "black";
@@ -150,7 +150,7 @@ function trace(x) {
 }
 
 function runNewtons() {
-	currX = evaluateZero($('#expression').val(), currX);
+	currX = evaluateZero(getInputValue('expression'), currX);
 	drawTrace(currX);
 }
 
@@ -293,7 +293,7 @@ function startFunctionAnimation(expr, noSave, dom, deriv) {
 
 function drawGraph(derivative) {
 	clearGraph(function() {
-		drawFunction($('#expression').val(), null, null, derivative);
+		drawFunction(getInputValue('expression'), null, null, derivative);
 	});
 
 	if (drawCoordinateAxes)
@@ -304,8 +304,8 @@ function pageReady() {
 	graph = getElemId("graph");
 	pen = graph.getContext("2d");
 
-	$(document).bind('mousewheel', function(e) {
-		if(e.originalEvent.wheelDelta /120 > 0)
+	document.addEventListener('wheel', function(e) {
+		if (e.wheelDelta / 120 > 0)
 			zoomIn();
 		else zoomOut();
 	});
@@ -335,7 +335,7 @@ function resizeGraph() {
 document.addEventListener('keydown', function (e) {
 	switch (e.which) {
 		case 13: // enter
-			$('#btn-eval').click();
+			btnEvalClick();
 			break;
 		case 78: // n
 			if (operationElem.value === 'trace')
@@ -366,8 +366,6 @@ operationElem.addEventListener('change', function () {
 	if (functionsAnimating <= 0)
 		restoreGraph();
 });
-
-btnEvalElem.addEventListener('click', btnEvalClick);
 
 function btnEvalClick() {
 	switch (operationElem.value) {
