@@ -57,11 +57,11 @@ function saveGraph() {
 }
 
 function evaluateExpression(expr, location) {
-	return math.round(math.compile(expr).eval({x: location}), precision);
+	return math.round(expr.eval({x: location}), precision);
 }
 
 function evaluateExpressionExact(expr, location) {
-	return math.compile(expr).eval({x: location});
+	return expr.eval({x: location});
 }
 
 function evaluateDerivative(expr, location) {
@@ -293,7 +293,7 @@ function startFunctionAnimation(expr, noSave, dom, deriv) {
 
 function drawGraph(derivative) {
 	clearGraph(function() {
-		drawFunction(getInputValue('expression'), null, null, derivative);
+		drawFunction(getExpression(), null, null, derivative);
 	});
 
 	if (drawCoordinateAxes)
@@ -397,7 +397,7 @@ function btnEvalClick() {
 }
 
 function getExpression() {
-	return expressionElem.value;
+	return math.compile(expressionElem.value);
 }
 
 btnSettingsElem.addEventListener('click', function () {
