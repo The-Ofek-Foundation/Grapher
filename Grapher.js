@@ -212,11 +212,16 @@ function drawFunction(expr, noSave, dom, deriv) {
 				}
 				pen.lineTo(X(x), Y(y));
 			} else {
-				if (drawing) {
-					drawing = false;
+				if (Math.abs(midY - oldY) < Math.abs(midY - y)) {
+					pen.lineTo(X(x - increment / 2), Y(midY));
 					pen.stroke();
+					pen.beginPath();
+					pen.moveTo(X(x), Y(y));
+				} else {
+					pen.stroke();
+					pen.beginPath();
+					pen.moveTo(X(x - increment / 2), Y(midY));
 				}
-				pen.fillRect(X(x), Y(y), 1, 1);
 			}
 			// if (Y(y) > docHeight || Y(y) < 0 || y.re) {
 			// 	if (drawing) {
@@ -261,15 +266,20 @@ var animateFunctionDrawing = function(expr, dom, x, prevY, drawing, noSave, eval
 
 	if (y.re || stopTimeout) drawing = false;
 	else if (lineMode) {
+		pen.beginPath();
 		if ((prevY < midY && midY < y) || (prevY > midY && midY > y)
 			|| (midY == prevY && midY == y)) {
-			pen.beginPath();
 			pen.moveTo(X(x - increment), Y(prevY));
 			pen.lineTo(X(x), Y(y));
-			pen.stroke();
 		} else {
-			pen.fillRect(X(x), Y(y), 1, 1);
+			pen.moveTo(X(x - increment / 2), Y(midY));
+			if (Math.abs(midY - prevY) < Math.abs(midY - y)) {
+				pen.lineTo(X(x - increment), Y(prevY));
+			} else {
+				pen.lineTo(X(x), Y(y));
+			}
 		}
+		pen.stroke();
 		// if (Y(y) > docHeight || Y(y) < 0) {
 		// 	if (drawing) {
 		// 		drawing = false;
