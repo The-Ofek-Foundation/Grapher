@@ -197,22 +197,40 @@ function drawFunction(expr, noSave, dom, deriv) {
 	pen.lineWidth = 1;
 
 	if (lineMode) {
-		y = evaluate(expr, dom[0]);
+		var oldY, midY;
+		y = oldY = evaluate(expr, dom[0]);
 		pen.moveTo(X(dom[0]), Y(y));
 		for (x = dom[0] + increment; x <= dom[1]; x += increment) {
 			y = evaluate(expr, x);
-			if (Y(y) > docHeight || Y(y) < 0 || y.re) {
+			midY = evaluate(expr, x - increment / 2);
+			if ((oldY < midY && midY < y) || (oldY > midY && midY > y)
+				|| (midY == oldY && midY == y)) {
+				if (!drawing) {
+					drawing = true;
+					pen.beginPath();
+					pen.moveTo(X(x - increment), Y(oldY));
+				}
+				pen.lineTo(X(x), Y(y));
+			} else {
 				if (drawing) {
 					drawing = false;
-					pen.lineTo(X(x), Y(y));
 					pen.stroke();
 				}
-				pen.beginPath();
-				pen.moveTo(X(x), Y(y));
-			} else {
-				pen.lineTo(X(x), Y(y));
-				drawing = true;
+				pen.fillRect(X(x), Y(y), 1, 1);
 			}
+			// if (Y(y) > docHeight || Y(y) < 0 || y.re) {
+			// 	if (drawing) {
+			// 		drawing = false;
+			// 		pen.lineTo(X(x), Y(y));
+			// 		pen.stroke();
+			// 	}
+			// 	pen.beginPath();
+			// 	pen.moveTo(X(x), Y(y));
+			// } else {
+			// 	pen.lineTo(X(x), Y(y));
+			// 	drawing = true;
+			// }
+			oldY = y;
 		}
 	} else for (x = dom[0]; x <= dom[1]; x += increment)
 		pen.fillRect(X(x), Y(evaluate(expr, x)), 1, 1);
@@ -239,24 +257,34 @@ var animateFunctionDrawing = function(expr, dom, x, prevY, drawing, noSave, eval
 	}
 
 	var y = evaluate(expr, x);
+	var midY = evaluate(expr, x - increment / 2);
 
 	if (y.re || stopTimeout) drawing = false;
 	else if (lineMode) {
-		if (Y(y) > docHeight || Y(y) < 0) {
-			if (drawing) {
-				drawing = false;
-				pen.beginPath();
-				pen.moveTo(X(x - increment), Y(prevY));
-				pen.lineTo(X(x), Y(y));
-				pen.stroke();
-			}
-		} else if (!prevY.re) {
+		if ((prevY < midY && midY < y) || (prevY > midY && midY > y)
+			|| (midY == prevY && midY == y)) {
 			pen.beginPath();
 			pen.moveTo(X(x - increment), Y(prevY));
 			pen.lineTo(X(x), Y(y));
 			pen.stroke();
-			drawing = true;
+		} else {
+			pen.fillRect(X(x), Y(y), 1, 1);
 		}
+		// if (Y(y) > docHeight || Y(y) < 0) {
+		// 	if (drawing) {
+		// 		drawing = false;
+				// pen.beginPath();
+				// pen.moveTo(X(x - increment), Y(prevY));
+				// pen.lineTo(X(x), Y(y));
+				// pen.stroke();
+		// 	}
+		// } else if (!prevY.re) {
+		// 	pen.beginPath();
+		// 	pen.moveTo(X(x - increment), Y(prevY));
+		// 	pen.lineTo(X(x), Y(y));
+		// 	pen.stroke();
+		// 	drawing = true;
+		// }
 	} else pen.fillRect(X(x), Y(y), 1, 1);
 
 	if (!stopTimeout)
