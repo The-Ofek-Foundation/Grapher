@@ -86,11 +86,11 @@ function evaluateIntegralPoint(expr, location) {
 
 function evaluateZero(expr, location) {
 	var slope = evaluateDerivative(expr, location);
-	return evaluateExpression("(" + slope + "*" + location + "-" + evaluateExpression(expr, location) + ")/" + slope, location);
+	return evaluateExpression(math.compile("(" + slope + "*" + location + "-" + evaluateExpression(expr, location) + ")/" + slope), location);
 }
 
 function getTangentExpression(expr, location) {
-	return evaluateDerivative(expr, location) + '*(x-' + location + ')+' + evaluateExpression(expr, location);
+	return math.compile(evaluateDerivative(expr, location) + '*(x-' + location + ')+' + evaluateExpression(expr, location));
 }
 
 function clearGraph(callback) {
@@ -128,7 +128,7 @@ function rY(y) {
 }
 
 function drawTrace(x) {
-	var expr = getInputValue('expression');
+	var expr = getExpression();
 	var y = evaluateExpression(expr, x);
 	pen.fillStyle = "black";
 	pen.strokeStyle = "black";
@@ -150,7 +150,7 @@ function trace(x) {
 }
 
 function runNewtons() {
-	currX = evaluateZero(getInputValue('expression'), currX);
+	currX = evaluateZero(getExpression(), currX);
 	drawTrace(currX);
 }
 
